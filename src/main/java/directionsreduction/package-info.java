@@ -1,0 +1,4 @@
+/**
+ * Directions reduction
+ */
+package directionsreduction;

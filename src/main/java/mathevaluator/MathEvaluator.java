@@ -55,7 +55,6 @@ public class MathEvaluator {
         public Operation(Expression left, Expression right) {
             this.left = left;
             this.right = right;
-            System.out.println(this.toString());
         }
 
         @Override
@@ -85,7 +84,9 @@ public class MathEvaluator {
 
         @Override
         public double evaluate() {
-            return left.evaluate() + right.evaluate();
+            double v = left.evaluate() + right.evaluate();
+            System.out.println(this.toString() + " = " + v);
+            return v;
         }
 
         @Override
@@ -105,7 +106,9 @@ public class MathEvaluator {
 
         @Override
         public double evaluate() {
-            return left.evaluate() - right.evaluate();
+            double v = left.evaluate() - right.evaluate();
+            System.out.println(this.toString() + " = " + v);
+            return v;
         }
 
         @Override
@@ -125,7 +128,9 @@ public class MathEvaluator {
 
         @Override
         public double evaluate() {
-            return left.evaluate() * right.evaluate();
+            double v = left.evaluate() * right.evaluate();
+            System.out.println(this.toString() + " = " + v);
+            return v;
         }
 
         @Override
@@ -145,7 +150,9 @@ public class MathEvaluator {
 
         @Override
         public double evaluate() {
-            return left.evaluate() / right.evaluate();
+            double v = left.evaluate() / right.evaluate();
+            System.out.println(this.toString() + " = " + v);
+            return v;
         }
 
         @Override
@@ -163,45 +170,32 @@ public class MathEvaluator {
     }
 
     public Expression parse(String e) {
-        String e1 = "";
-
         if (e.isEmpty()) {
             return null;
         }
 
+        String tmp = e;
+
+        // Resolve parentheses first
+        int open = tmp.indexOf('(');
+        if (open != -1) {
+            int close = findClose(tmp, open);
+            String parenthesis = tmp.substring(open + 1, close);
+            double result = parse(parenthesis).evaluate();
+            tmp = tmp.substring(0, open) + Double.toString(result) + tmp.substring(close + 1);
+            return parse(tmp);
+        }
+
         int i = 0;
-        while (i < e.length() && e.charAt(i) == ' ') {
+        while (i < tmp.length() && tmp.charAt(i) == ' ') {
             i++;
         }
 
-        Expression par;
-        if (e.charAt(i) == '(') {
-            int close = findClose(e, i);
-            par = parse(e.substring(i+1, close));
-            i = close + 1;
-
-            while (i < e.length() && e.charAt(i) == ' ') {
-                i++;
-            }
-
-            if (i == e.length()) {
-                return par;
-            }
-
-            if (e.charAt(i) == '+') {
-                return new Addition(par, parse(e.substring(i+1)));
-            } else if (e.charAt(i) == '-') {
-                return new Subtraction(par, parse(e.substring(i+1)));
-            } else if (e.charAt(i) == '*') {
-                return new Multiplication(par, parse(e.substring(i+1)));
-            } else if (e.charAt(i) == '/') {
-                return new Division(par, parse(e.substring(i+1)));
-            }
-        }
+        String e1 = "";
 
         char c;
         char last = ' ';
-        while (i < e.length() && (c = e.charAt(i)) != '+' && (c != '-' || (c == '-' && e1.isEmpty())) && c != '(') {
+        while (i < tmp.length() && (c = tmp.charAt(i)) != '+' && (c != '-' || (c == '-' && e1.isEmpty())) && c != '(') {
             e1 += c;
             if (c != ' ') {
                 last = c;
@@ -209,20 +203,20 @@ public class MathEvaluator {
             i++;
         }
 
-        while (i < e.length() && e.charAt(i) == ' ') {
+        while (i < tmp.length() && tmp.charAt(i) == ' ') {
             i++;
         }
 
-        if (i == e.length()) {
+        if (i == tmp.length()) {
             return parseSubexpression(e1);
         }
 
-        if (e.charAt(i) == '+') {
-            return new Addition(parseSubexpression(e1), parse(e.substring(i+1)));
-        } else if (e.charAt(i) == '-') {
-            return new Subtraction(parseSubexpression(e1), parse(e.substring(i+1)));
-        } else if (e.charAt(i) == '(') {
-            return parenthesis(e1, last, e.substring(i));
+        if (tmp.charAt(i) == '+') {
+            return new Addition(parseSubexpression(e1), parse(tmp.substring(i+1)));
+        } else if (tmp.charAt(i) == '-') {
+            return new Subtraction(parseSubexpression(e1), parse(tmp.substring(i+1)));
+        } else if (tmp.charAt(i) == '(') {
+            return parenthesis(e1, last, tmp.substring(i));
         }
 
         return null;
@@ -253,7 +247,6 @@ public class MathEvaluator {
     }
 
     public Expression parseSubexpression(String e) {
-        System.out.println("Subexpression: " + e);
         if (e.isEmpty()) {
             return null;
         }

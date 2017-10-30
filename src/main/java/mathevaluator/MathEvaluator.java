@@ -174,9 +174,38 @@ public class MathEvaluator {
             i++;
         }
 
+        Expression par;
+        if (e.charAt(i) == '(') {
+            int close = findClose(e, i);
+            par = parse(e.substring(i+1, close));
+            i = close + 1;
+
+            while (i < e.length() && e.charAt(i) == ' ') {
+                i++;
+            }
+
+            if (i == e.length()) {
+                return par;
+            }
+
+            if (e.charAt(i) == '+') {
+                return new Addition(par, parse(e.substring(i+1)));
+            } else if (e.charAt(i) == '-') {
+                return new Subtraction(par, parse(e.substring(i+1)));
+            } else if (e.charAt(i) == '*') {
+                return new Multiplication(par, parse(e.substring(i+1)));
+            } else if (e.charAt(i) == '/') {
+                return new Division(par, parse(e.substring(i+1)));
+            }
+        }
+
         char c;
-        while (i < e.length() && (c = e.charAt(i)) != '+' && (c != '-' || (c == '-' && e1.isEmpty()))) {
+        char last = ' ';
+        while (i < e.length() && (c = e.charAt(i)) != '+' && (c != '-' || (c == '-' && e1.isEmpty())) && c != '(') {
             e1 += c;
+            if (c != ' ') {
+                last = c;
+            }
             i++;
         }
 
@@ -192,6 +221,32 @@ public class MathEvaluator {
             return new Addition(parseSubexpression(e1), parse(e.substring(i+1)));
         } else if (e.charAt(i) == '-') {
             return new Subtraction(parseSubexpression(e1), parse(e.substring(i+1)));
+        } else if (e.charAt(i) == '(') {
+            return parenthesis(e1, last, e.substring(i));
+        }
+
+        return null;
+    }
+
+    public Expression parenthesis(String e1, char op, String e2) {
+        String e = "";
+        boolean removed = false;
+        for (int i = e1.length() - 1; i >= 0; i--) {
+            if (e1.charAt(i) == op && !removed) {
+                removed = true;
+            } else {
+                e = e1.charAt(i) + e;
+            }
+        }
+
+        if (op == '+') {
+            return new Addition(parse(e), parse(e2));
+        } else if (op == '-') {
+            return new Subtraction(parse(e), parse(e2));
+        } else if (op == '*') {
+            return new Multiplication(parse(e), parse(e2));
+        } else if (op == '/') {
+            return new Division(parse(e), parse(e2));
         }
 
         return null;
@@ -245,6 +300,23 @@ public class MathEvaluator {
         }
 
         return null;
+    }
+
+    public static int findClose(String e, int pos) {
+        int inside = 0;
+        for (int i = pos + 1; i < e.length(); i++) {
+            char c = e.charAt(i);
+            if (c == '(') {
+                inside++;
+            } else if (c == ')') {
+                if (inside > 0) {
+                    inside--;
+                } else {
+                    return i;
+                }
+            }
+        }
+        return -1;
     }
 
 

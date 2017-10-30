@@ -165,6 +165,7 @@ public class MathEvaluator {
     }
 
     public double calculate(String expression) {
+        System.out.println(expression);
         Expression ex = parse(expression);
         return ex.evaluate();
     }
@@ -187,25 +188,17 @@ public class MathEvaluator {
         }
 
         int i = 0;
-        while (i < tmp.length() && tmp.charAt(i) == ' ') {
-            i++;
-        }
+        i = ignoreSpaces(tmp, i);
 
         String e1 = "";
 
         char c;
-        char last = ' ';
-        while (i < tmp.length() && (c = tmp.charAt(i)) != '+' && (c != '-' || (c == '-' && e1.isEmpty())) && c != '(') {
+        while (i < tmp.length() && (c = tmp.charAt(i)) != '+' && (c != '-' || (c == '-' && e1.isEmpty()))) {
             e1 += c;
-            if (c != ' ') {
-                last = c;
-            }
             i++;
         }
 
-        while (i < tmp.length() && tmp.charAt(i) == ' ') {
-            i++;
-        }
+        i = ignoreSpaces(tmp, i);
 
         if (i == tmp.length()) {
             return parseSubexpression(e1);
@@ -214,47 +207,67 @@ public class MathEvaluator {
         if (tmp.charAt(i) == '+') {
             return new Addition(parseSubexpression(e1), parse(tmp.substring(i+1)));
         } else if (tmp.charAt(i) == '-') {
-            return new Subtraction(parseSubexpression(e1), parse(tmp.substring(i+1)));
-        } else if (tmp.charAt(i) == '(') {
-            return parenthesis(e1, last, tmp.substring(i));
+            // If last char is an operator, then this is a negative number
+            String aux = e1.trim();
+            char last = aux.charAt(aux.length()-1);
+            aux = aux.substring(0, aux.length()-1);
+            if (!Character.isDigit(last)) {
+                String sign = "-";
+                i++;
+                String number = "";
+                while (i < tmp.length()) {
+                    c = tmp.charAt(i);
+                    if (c == '-') {
+                        sign = sign.equals("+") ? "-" : "+";
+                    } else {
+                        if (Character.isDigit(c) || c == '.') {
+                            number += c;
+                        } else {
+                            break;
+                        }
+                    }
+                    i++;
+                }
+                Operand op = new Operand(sign, number);
+
+                if (i == tmp.length()) {
+                    return operation(parseSubexpression(aux), last, op);
+                }
+
+                i = ignoreSpaces(tmp, i);
+
+                if (i == tmp.length()) {
+                    return operation(parseSubexpression(aux), last, op);
+                }
+
+                c = tmp.charAt(i);
+
+                char operator = c;
+                i++;
+                return operation(operation(parseSubexpression(aux), last, op), operator, parse(tmp.substring(i+1)));
+            } else {
+                return new Subtraction(parseSubexpression(e1), parse(tmp.substring(i + 1)));
+            }
         }
 
         return null;
     }
 
-    public Expression parenthesis(String e1, char op, String e2) {
-        String e = "";
-        boolean removed = false;
-        for (int i = e1.length() - 1; i >= 0; i--) {
-            if (e1.charAt(i) == op && !removed) {
-                removed = true;
-            } else {
-                e = e1.charAt(i) + e;
-            }
+    private int ignoreSpaces(String tmp, int i) {
+        while (i < tmp.length() && tmp.charAt(i) == ' ') {
+            i++;
         }
-
-        if (op == '+') {
-            return new Addition(parse(e), parse(e2));
-        } else if (op == '-') {
-            return new Subtraction(parse(e), parse(e2));
-        } else if (op == '*') {
-            return new Multiplication(parse(e), parse(e2));
-        } else if (op == '/') {
-            return new Division(parse(e), parse(e2));
-        }
-
-        return null;
+        return i;
     }
 
     public Expression parseSubexpression(String e) {
         if (e.isEmpty()) {
-            return null;
+            return new Operand("+","0");
         }
 
         int i = 0;
-        while (e.charAt(i) == ' ' && i < e.length()) {
-            i++;
-        }
+
+        i = ignoreSpaces(e, i);
 
         char c;
         String sign = "+";
@@ -272,26 +285,64 @@ public class MathEvaluator {
             }
             i++;
         }
-        Operand op = new Operand(sign, number);
+        Operand op1 = new Operand(sign, number);
         if (i == e.length()) {
-            return op;
+            return op1;
         }
 
-        while (i < e.length() && e.charAt(i) == ' ') {
-            i++;
-        }
+        i = ignoreSpaces(e, i);
 
         if (i == e.length()) {
-            return op;
+            return op1;
         }
 
         c = e.charAt(i);
-        if (c == '*') {
-            return new Multiplication(op, parse(e.substring(i+1)));
-        } else if (c == '/') {
-            return new Division(op, parse(e.substring(i+1)));
+
+        char operator = c;
+        i++;
+
+        i = ignoreSpaces(e, i);
+
+        sign = "+";
+        if (e.charAt(i) == '-') {
+            sign = "-";
+            i++;
+        }
+        number = "";
+        while (i < e.length()) {
+            c = e.charAt(i);
+            if (Character.isDigit(c) || c == '.') {
+                number += c;
+            } else {
+                break;
+            }
+            i++;
+        }
+        Operand op2 = new Operand(sign, number);
+
+        if (i == e.length()) {
+            return operation(op1, operator, op2);
         }
 
+        i = ignoreSpaces(e, i);
+
+        if (i == e.length()) {
+            return operation(op1, operator, op2);
+        }
+
+        c = e.charAt(i);
+        char operator2 = c;
+        return operation(operation(op1, operator, op2), operator2, parse(e.substring(i+1)));
+    }
+
+    public static Expression operation(Expression op1, char operator, Expression op2) {
+        if (operator == '*') {
+            return new Multiplication(op1, op2);
+        } else if (operator == '/') {
+            return new Division(op1, op2);
+        } else if (operator == '-') {
+            return new Subtraction(op1, op2);
+        }
         return null;
     }
 

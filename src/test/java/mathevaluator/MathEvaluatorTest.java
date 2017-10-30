@@ -20,6 +20,25 @@ public class MathEvaluatorTest {
         assertEquals(new MathEvaluator.Addition(new MathEvaluator.Operand("+","1"),new MathEvaluator.Operand("+","1")), new MathEvaluator().parse("1     +       1"));
     }
 
+
+    @Test public void testThreeOps() {
+        assertEquals(new MathEvaluator().calculate("2 / 2 * 3"), 3d, 0.01);
+    }
+
+    @Test public void testFailed3() {
+        assertEquals(new MathEvaluator().calculate("-(-5)"), 5, 0.01);
+    }
+
+
+    @Test public void testFailed1() {
+        assertEquals(new MathEvaluator().calculate("12*-1"), -12d, 0.01);
+    }
+
+    @Test public void testFailed2() {
+        assertEquals(new MathEvaluator().calculate("12 * 123 / -(-5 + 2)"), 492, 0.01);
+    }
+
+
     @Test public void testAddition() {
         assertEquals(new MathEvaluator().calculate("1+1"), 2d, 0.01);
     }

@@ -25,11 +25,6 @@ public class MathEvaluatorTest {
         assertEquals(new MathEvaluator().calculate("2 / 2 * 3"), 3d, 0.01);
     }
 
-    @Test public void testFailed3() {
-        assertEquals(new MathEvaluator().calculate("-(-5)"), 5, 0.01);
-    }
-
-
     @Test public void testFailed1() {
         assertEquals(new MathEvaluator().calculate("12*-1"), -12d, 0.01);
     }
@@ -37,6 +32,19 @@ public class MathEvaluatorTest {
     @Test public void testFailed2() {
         assertEquals(new MathEvaluator().calculate("12 * 123 / -(-5 + 2)"), 492, 0.01);
     }
+
+    @Test public void testFailed3() {
+        assertEquals(new MathEvaluator().calculate("-(-5)"), 5, 0.01);
+    }
+
+    @Test public void testFailed4() {
+        assertEquals(new MathEvaluator().calculate("(123.45*(678.90 / (-2.5+ 11.5)-(((80 -(19))) *33.25)) / 20) - (123.45*(678.90 / (-2.5+ 11.5)-(((80 -(19))) *33.25)) / 20) + (13 - 2)/ -(-11)"), 1, 0.01);
+    }
+
+    @Test public void testFailed5() {
+        assertEquals(new MathEvaluator().calculate("123.45*(678.90 / (-2.5+ 11.5)-(80 -19) *33.25) / 20 + 11"), -12042.76, 0.01);
+    }
+
 
 
     @Test public void testAddition() {

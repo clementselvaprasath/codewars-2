@@ -8,18 +8,13 @@ public class MathEvaluator {
 
     public static class Operand implements Expression {
 
-        private String sign;
+        private int sign;
 
         private String value;
 
         public Operand(String sign, String value) {
-            this.sign = sign;
+            this.sign = sign.equals("+") ? +1 : -1;
             this.value = value;
-        }
-
-        @Override
-        public double evaluate() {
-            return (sign.equals("+") ? +1 : -1) * Double.parseDouble(value);
         }
 
         @Override
@@ -29,21 +24,22 @@ public class MathEvaluator {
 
             Operand operand = (Operand) o;
 
-            if (sign != null ? !sign.equals(operand.sign) : operand.sign != null) return false;
+            if (sign != operand.sign) return false;
             return value != null ? value.equals(operand.value) : operand.value == null;
         }
 
         @Override
         public int hashCode() {
-            int result = sign != null ? sign.hashCode() : 0;
+            int result = sign;
             result = 31 * result + (value != null ? value.hashCode() : 0);
             return result;
         }
 
         @Override
-        public String toString() {
-            return sign + value;
-        }
+        public double evaluate() { return sign * Double.parseDouble(value); }
+
+        @Override
+        public String toString() { return (sign == -1 ? "-" : "") + value; }
     }
 
     public static abstract class Operation implements Expression {
@@ -52,9 +48,12 @@ public class MathEvaluator {
 
         protected Expression right;
 
-        public Operation(Expression left, Expression right) {
+        protected String operator;
+
+        public Operation(Expression left, Expression right, String operator) {
             this.left = left;
             this.right = right;
+            this.operator = operator;
         }
 
         @Override
@@ -65,21 +64,31 @@ public class MathEvaluator {
             Operation operation = (Operation) o;
 
             if (left != null ? !left.equals(operation.left) : operation.left != null) return false;
-            return right != null ? right.equals(operation.right) : operation.right == null;
+            if (right != null ? !right.equals(operation.right) : operation.right != null) return false;
+            return operator != null ? operator.equals(operation.operator) : operation.operator == null;
         }
 
         @Override
         public int hashCode() {
             int result = left != null ? left.hashCode() : 0;
             result = 31 * result + (right != null ? right.hashCode() : 0);
+            result = 31 * result + (operator != null ? operator.hashCode() : 0);
             return result;
+        }
+
+        @Override
+        public String toString() {
+            if (left != null && right != null) {
+                return left.toString() + " " + operator + " " + right.toString();
+            }
+            throw new IllegalStateException();
         }
     }
 
     public static class Addition extends Operation {
 
         public Addition(Expression left, Expression right) {
-            super(left, right);
+            super(left, right, "+");
         }
 
         @Override
@@ -88,20 +97,12 @@ public class MathEvaluator {
             System.out.println(this.toString() + " = " + v);
             return v;
         }
-
-        @Override
-        public String toString() {
-            if (left != null && right != null) {
-                return left.toString() + " + " + right.toString();
-            }
-            return "+";
-        }
     }
 
     public static class Subtraction extends Operation {
 
         public Subtraction(Expression left, Expression right) {
-            super(left, right);
+            super(left, right, "-");
         }
 
         @Override
@@ -110,20 +111,12 @@ public class MathEvaluator {
             System.out.println(this.toString() + " = " + v);
             return v;
         }
-
-        @Override
-        public String toString() {
-            if (left != null && right != null) {
-                return left.toString() + " - " + right.toString();
-            }
-            return "-";
-        }
     }
 
     public static class Multiplication extends Operation {
 
         public Multiplication(Expression left, Expression right) {
-            super(left, right);
+            super(left, right, "*");
         }
 
         @Override
@@ -132,20 +125,12 @@ public class MathEvaluator {
             System.out.println(this.toString() + " = " + v);
             return v;
         }
-
-        @Override
-        public String toString() {
-            if (left != null && right != null) {
-                return left.toString() + " * " + right.toString();
-            }
-            return "*";
-        }
     }
 
     public static class Division extends Operation {
 
         public Division(Expression left, Expression right) {
-            super(left, right);
+            super(left, right, "/");
         }
 
         @Override
@@ -153,14 +138,6 @@ public class MathEvaluator {
             double v = left.evaluate() / right.evaluate();
             System.out.println(this.toString() + " = " + v);
             return v;
-        }
-
-        @Override
-        public String toString() {
-            if (left != null && right != null) {
-                return left.toString() + " / " + right.toString();
-            }
-            return "/";
         }
     }
 
@@ -184,6 +161,7 @@ public class MathEvaluator {
             String parenthesis = tmp.substring(open + 1, close);
             double result = parse(parenthesis).evaluate();
             tmp = tmp.substring(0, open) + Double.toString(result) + tmp.substring(close + 1);
+            System.out.println(tmp);
             return parse(tmp);
         }
 

@@ -5,81 +5,85 @@ import static org.junit.Assert.assertEquals;
 
 public class MathEvaluatorTest {
 
-    @Test
-    public void testParse1() {
-        assertEquals(new MathEvaluator.Operand("+","1"), new MathEvaluator().parse("1"));
+    @Test public void testLiteral() {
+        assertEquals(123d, new MathEvaluator().calculate("123"), 0.01);
     }
-
-    @Test
-    public void testParse2() {
-        assertEquals(new MathEvaluator.Addition(new MathEvaluator.Operand("+","1"),new MathEvaluator.Operand("+","1")), new MathEvaluator().parse("1+1"));
-    }
-
-    @Test
-    public void testParse3() {
-        assertEquals(new MathEvaluator.Addition(new MathEvaluator.Operand("+","1"),new MathEvaluator.Operand("+","1")), new MathEvaluator().parse("1     +       1"));
-    }
-
-
-    @Test public void testThreeOps() {
-        assertEquals(new MathEvaluator().calculate("2 / 2 * 3"), 3d, 0.01);
-    }
-
-    @Test public void testFailed1() {
-        assertEquals(new MathEvaluator().calculate("12*-1"), -12d, 0.01);
-    }
-
-    @Test public void testFailed2() {
-        assertEquals(new MathEvaluator().calculate("12 * 123 / -(-5 + 2)"), 492, 0.01);
-    }
-
-    @Test public void testFailed3() {
-        assertEquals(new MathEvaluator().calculate("-(-5)"), 5, 0.01);
-    }
-
-    @Test public void testFailed4() {
-        assertEquals(new MathEvaluator().calculate("(123.45*(678.90 / (-2.5+ 11.5)-(((80 -(19))) *33.25)) / 20) - (123.45*(678.90 / (-2.5+ 11.5)-(((80 -(19))) *33.25)) / 20) + (13 - 2)/ -(-11)"), 1, 0.01);
-    }
-
-    @Test public void testFailed5() {
-        assertEquals(new MathEvaluator().calculate("123.45*(678.90 / (-2.5+ 11.5)-(80 -19) *33.25) / 20 + 11"), -12042.76, 0.01);
-    }
-
-
 
     @Test public void testAddition() {
-        assertEquals(new MathEvaluator().calculate("1+1"), 2d, 0.01);
+        assertEquals(2d, new MathEvaluator().calculate("1+1"), 0.01);
     }
 
     @Test public void testSubtraction() {
-        assertEquals(new MathEvaluator().calculate("1 - 1"), 0d, 0.01);
+        assertEquals(0d, new MathEvaluator().calculate("1 - 1"), 0.01);
     }
 
     @Test public void testMultiplication() {
-        assertEquals(new MathEvaluator().calculate("1* 1"), 1d, 0.01);
+        assertEquals(12d, new MathEvaluator().calculate("3* 4"), 0.01);
     }
 
     @Test public void testDivision() {
-        assertEquals(new MathEvaluator().calculate("1 /1"), 1d, 0.01);
+        assertEquals(3d, new MathEvaluator().calculate("9 /3"), 0.01);
     }
 
     @Test public void testNegative() {
-        assertEquals(new MathEvaluator().calculate("-123"), -123d, 0.01);
+        assertEquals(-123d, new MathEvaluator().calculate("-123"), 0.01);
     }
 
-    @Test public void testLiteral() {
-        assertEquals(new MathEvaluator().calculate("123"), 123d, 0.01);
+    @Test public void testFailed1() {
+        assertEquals(-12d, new MathEvaluator().calculate("12*-1"), 0.01);
+    }
+
+    @Test public void testThreeOps() {
+        assertEquals(3d, new MathEvaluator().calculate("2 / 2 * 3"), 0.01);
     }
 
     @Test public void testExpression() {
-        assertEquals(new MathEvaluator().calculate("2 /2+3 * 4.75- -6"), 21.25, 0.01);
+        assertEquals(21.25, new MathEvaluator().calculate("2 /2+3 * 4.75- -6"), 0.01);
     }
 
     @Test public void testSimple() {
-        assertEquals(new MathEvaluator().calculate("12* 123"), 1476d, 0.01);
+        assertEquals(1476d, new MathEvaluator().calculate("12* 123"), 0.01);
     }
 
+    @Test public void testFailed3() {
+        assertEquals(5, new MathEvaluator().calculate("(((((5)))))"), 0.01);
+    }
+
+    @Test public void testFailed6() {
+        assertEquals(5, new MathEvaluator().calculate("-(-5)"), 0.01);
+    }
+
+    @Test public void testFailed7() {
+        assertEquals(8, new MathEvaluator().calculate("4(2)"), 0.01);
+    }
+
+    @Test public void testFailed2() {
+        assertEquals(492, new MathEvaluator().calculate("12 * 123 / -(-5 + 2)"), 0.01);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+    @Test public void testFailed4() {
+        assertEquals(1, new MathEvaluator().calculate("(123.45*(678.90 / (-2.5+ 11.5)-(((80 -(19))) *33.25)) / 20) - (123.45*(678.90 / (-2.5+ 11.5)-(((80 -(19))) *33.25)) / 20) + (13 - 2)/ -(-11)"), 0.01);
+    }
+
+    @Test public void testFailed5() {
+        assertEquals(-12042.76, new MathEvaluator().calculate("123.45*(678.90 / (-2.5+ 11.5)-(80 -19) *33.25) / 20 + 11"), 0.01);
+    }
+
+
+
+
     @Test public void testComplex() {
-        assertEquals(new MathEvaluator().calculate("2 / (2 + 3) * 4.33 - -6"), 7.732, 0.01);
+        assertEquals(7.732, new MathEvaluator().calculate("2 / (2 + 3) * 4.33 - -6"), 0.01);
     }
 }

@@ -246,7 +246,6 @@ public class MathEvaluator {
 
     public double calculate(String expression) {
         String e = expression.replace(" ", "");
-        System.out.println(e);
         Expression ex = parse(new StringReader(e));
         return ex.evaluate();
     }
@@ -257,7 +256,7 @@ public class MathEvaluator {
     }
 
     private boolean newNumber(Character c, Character prev, Expression exp, boolean empty) {
-        boolean canBeNegative = empty && (exp == null || exp instanceof Operation);
+        boolean canBeNegative = empty && (exp == null || (exp instanceof Operation && ((Operation)exp).right == null));
         return numberChar(c, canBeNegative) && !numberChar(prev, false);
     }
 
@@ -296,6 +295,7 @@ public class MathEvaluator {
     }
 
     public Expression parse(StringReader e) {
+        System.out.println("Parsing: " + e.toString());
         Character curr;
         String number = "";
         Expression expression = null;
@@ -313,7 +313,8 @@ public class MathEvaluator {
                 if (isHighPriorityOperator(curr)) {
                     expression = operation(expression, curr, null);
                 } else if (isLowPriorityOperator(curr)) {
-                    return operation(expression, curr, parse(e.readFromHere()));
+                    expression = operation(expression, curr, null);
+                    //return operation(expression, curr, parse(e.readFromHere()));
                 } else if (isParentheses(curr)) {
                     if (neg != null) {
                         neg.setRight(parse(e.readSubexpression()));
@@ -330,7 +331,7 @@ public class MathEvaluator {
                 }
             } else if (isParentheses(curr)) {
                 if (expression == null) {
-                    return parse(e.readSubexpression());
+                    expression = parse(e.readSubexpression());
                 } else {
                     if (expression instanceof Operation) {
                         ((Operation) expression).setRight(parse(e.readSubexpression()));

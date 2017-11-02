@@ -80,12 +80,16 @@ public class MathEvaluatorTest {
         assertEquals(2, new MathEvaluator().calculate("1 - 1 + 2"), 0.01);
     }
 
+    @Test public void testFailed4_4() {
+        assertEquals(13, new MathEvaluator().calculate("1 + 3 * 4"), 0.01);
+    }
+
     @Test public void testFailed4_1() {
         assertEquals(-1952.8166667d, new MathEvaluator().calculate("678.90/(-2.5+11.5)-(((80-(19)))*33.25)"), 0.01);
     }
 
     @Test public void testFailed4_2() {
-        assertEquals(2028.25d, new MathEvaluator().calculate("(80-19)*33.25)"), 0.01);
+        assertEquals(2028.25d, new MathEvaluator().calculate("(80-19)*33.25"), 0.01);
     }
 
 

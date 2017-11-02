@@ -87,6 +87,9 @@ public class MathEvaluator {
         public String toString() {
             return (left != null ? left.toString() : "") + operator + (right != null ? right.toString() : "");
         }
+
+        abstract boolean isLowPriority();
+
     }
 
     public static class Negate extends Operation {
@@ -105,6 +108,11 @@ public class MathEvaluator {
             double v = -1 * right.evaluate();
             System.out.println(this.toString() + " = " + v);
             return v;
+        }
+
+        @Override
+        boolean isLowPriority() {
+            return false;
         }
     }
 
@@ -125,6 +133,12 @@ public class MathEvaluator {
             System.out.println(this.toString() + " = " + v);
             return v;
         }
+
+        @Override
+        boolean isLowPriority() {
+            return true;
+        }
+
     }
 
     public static class Subtraction extends Operation {
@@ -143,6 +157,12 @@ public class MathEvaluator {
             System.out.println(this.toString() + " = " + v);
             return v;
         }
+
+        @Override
+        boolean isLowPriority() {
+            return true;
+        }
+
     }
 
     public static class Multiplication extends Operation {
@@ -160,6 +180,11 @@ public class MathEvaluator {
             double v = left.evaluate() * right.evaluate();
             System.out.println(this.toString() + " = " + v);
             return v;
+        }
+
+        @Override
+        boolean isLowPriority() {
+            return false;
         }
     }
 
@@ -179,6 +204,12 @@ public class MathEvaluator {
             System.out.println(this.toString() + " = " + v);
             return v;
         }
+
+        @Override
+        boolean isLowPriority() {
+            return false;
+        }
+
     }
 
     public static class StringReader {
@@ -282,12 +313,12 @@ public class MathEvaluator {
         return c != null && c == '(';
     }
 
-    private Expression addNumber(String number, Expression expression) {
+    private Expression addNumber(String number, Expression expression, Character curr) {
         Operand operand = new Operand(number);
         if (expression == null) {
             return operand;
         } else {
-            if (expression instanceof Operation) {
+            if (expression instanceof Operation && curr == null) {
                 ((Operation) expression).setRight(operand);
             }
             return expression;
@@ -303,18 +334,32 @@ public class MathEvaluator {
             if (newNumber(curr, e.previousChar(), expression, number.isEmpty()) || sameNumber(curr, e.previousChar(), expression, number.isEmpty())) {
                 number += curr;
             } else if (numberEnded(curr, e.previousChar(), number.isEmpty())) {
+                boolean processed = false;
                 Negate neg = null;
                 if (number.equals("-")) {
                     neg = new Negate();
                 } else {
-                    expression = addNumber(number, expression);
+                    Operand operand = new Operand(number);
+                    if (expression == null) {
+                        expression = operand;
+                    } else {
+                        if (expression instanceof Operation) {
+                            if (isHighPriorityOperator(curr) && ((Operation)expression).isLowPriority()) {
+                                ((Operation) expression).setRight(operation(operand, curr, parse(e.readFromHere())));
+                                return expression;
+                            } else if (isLowPriorityOperator(curr)) {
+                                ((Operation) expression).setRight(operand);
+                                expression = operation(expression, curr, null);
+                                processed = true;
+                            }
+                        }
+                    }
                 }
                 number = "";
-                if (isHighPriorityOperator(curr)) {
+                if (!processed && isHighPriorityOperator(curr)) {
                     expression = operation(expression, curr, null);
-                } else if (isLowPriorityOperator(curr)) {
+                } else if (!processed && isLowPriorityOperator(curr)) {
                     expression = operation(expression, curr, null);
-                    //return operation(expression, curr, parse(e.readFromHere()));
                 } else if (isParentheses(curr)) {
                     if (neg != null) {
                         neg.setRight(parse(e.readSubexpression()));
@@ -344,7 +389,7 @@ public class MathEvaluator {
             }
         }
         if (numberEnded(null, e.previousChar(), number.isEmpty())) {
-            expression = addNumber(number, expression);
+            expression = addNumber(number, expression, null);
         }
 
         return expression;

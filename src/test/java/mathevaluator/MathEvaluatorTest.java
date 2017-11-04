@@ -53,8 +53,8 @@ public class MathEvaluatorTest {
         assertEquals(5, new MathEvaluator().calculate("-(-5)"), 0.01);
     }
 
-    @Test public void testFailed7() {
-        assertEquals(8, new MathEvaluator().calculate("4(2)"), 0.01);
+    @Test public void testFailed8() {
+        assertEquals(5, new MathEvaluator().calculate("--5"), 0.01);
     }
 
     @Test public void testFailed2() {

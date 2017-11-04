@@ -10,7 +10,7 @@ public class MathEvaluator {
 
         private String value;
 
-        public Operand(String value) {
+        Operand(String value) {
             this.value = value;
         }
 
@@ -42,22 +42,22 @@ public class MathEvaluator {
 
     public static abstract class Operation implements Expression {
 
-        protected Expression left;
+        Expression left;
 
-        protected Expression right;
+        Expression right;
 
-        protected String operator;
+        String operator;
 
-        public Operation(Expression left, String operator) {
+        Operation(Expression left, String operator) {
             this.left = left;
             this.operator = operator;
         }
 
-        public void setRight(Expression right) {
+        void setRight(Expression right) {
             this.right = right;
         }
 
-        public Expression getRight() {
+        Expression getRight() {
             return right;
         }
 
@@ -94,11 +94,6 @@ public class MathEvaluator {
 
         public Negate() {
             super(null, "-");
-        }
-
-        @Override
-        public String toString() {
-            return "-(" + right.toString() + ")";
         }
 
         @Override
@@ -197,17 +192,17 @@ public class MathEvaluator {
 
         private String expression;
 
-        public ParenthesesProcessor(String e) {
+        ParenthesesProcessor(String e) {
             this.expression = e;
         }
 
-        public String getParentheses() {
+        String getParentheses() {
             int open = this.expression.indexOf('(');
             int close = findClose(open);
             return open != -1 && close != -1 ? this.expression.substring(open+1, close) : null;
         }
 
-        public String replaceParentheses(double value) {
+        String replaceParentheses(double value) {
             int open = this.expression.indexOf('(');
             int close = findClose(open);
             return open != -1 && close != -1 ? this.expression.substring(0, open) + value + this.expression.substring(close+1) : this.expression;
@@ -237,11 +232,11 @@ public class MathEvaluator {
 
         private String expression;
 
-        private Character previousChar;
+        Character previousChar;
 
         private int pointer = 0;
 
-        public StringReader(String e) {
+        StringReader(String e) {
             this.expression = e;
         }
 
@@ -250,7 +245,7 @@ public class MathEvaluator {
             return this.expression;
         }
 
-        public Character nextChar() {
+        Character nextChar() {
             if (expression.length() <= pointer) {
                 previousChar = expression.charAt(expression.length() - 1);
                 return null;
@@ -263,11 +258,7 @@ public class MathEvaluator {
             return expression.charAt(pointer++);
         }
 
-        public Character previousChar() {
-            return previousChar;
-        }
-
-        public String readFromHere() {
+        String readFromHere() {
             return expression.substring(pointer);
         }
     }
@@ -299,15 +290,15 @@ public class MathEvaluator {
     }
 
     private boolean isHighPriorityOperator(Character c) {
-        return c != null && c == '*' || c == '/';
+        return c != null && (c == '*' || c == '/');
     }
 
     private boolean isLowPriorityOperator(Character c) {
-        return c != null && c == '+' || c == '-';
+        return c != null && (c == '+' || c == '-');
     }
 
     public Expression parse(String exp) {
-        System.out.println("Parsing: " + exp.toString());
+        System.out.println(exp);
 
         ParenthesesProcessor par = new ParenthesesProcessor(exp);
         String subexpression = par.getParentheses();
@@ -320,11 +311,10 @@ public class MathEvaluator {
         String number = "";
         Expression expression = null;
         while ((curr = e.nextChar()) != null) {
-            if (newNumber(curr, e.previousChar(), expression, number.isEmpty()) || sameNumber(curr, e.previousChar(), expression, number.isEmpty())) {
+            if (newNumber(curr, e.previousChar, expression, number.isEmpty()) || sameNumber(curr, e.previousChar, expression, number.isEmpty())) {
                 number += curr;
-            } else if (numberEnded(curr, e.previousChar(), number.isEmpty())) {
-                boolean processed = false;
-                Negate neg = null;
+            } else if (numberEnded(curr, e.previousChar, number.isEmpty())) {
+                Negate neg;
                 if (number.equals("-")) {
                     neg = new Negate();
                     if (expression == null) {
@@ -336,30 +326,27 @@ public class MathEvaluator {
                     }
                 } else {
                     Operand operand = new Operand(number);
+                    number = "";
                     if (expression == null) {
                         expression = operand;
                     } else {
                         if (expression instanceof Operation) {
                             if (isHighPriorityOperator(curr) && ((Operation)expression).isLowPriority()) {
-                                ((Operation) expression).setRight(parse(operand.toString() + curr + e.readFromHere().toString()));
+                                ((Operation) expression).setRight(parse(operand.toString() + curr + e.readFromHere()));
                                 return expression;
                             } else if (isLowPriorityOperator(curr)) {
                                 ((Operation) expression).setRight(operand);
                                 expression = operation(expression, curr, null);
-                                processed = true;
+                                continue;
                             } else {
                                 ((Operation) expression).setRight(operand);
                             }
                         }
                     }
-
-                    number = "";
-                    if (!processed && isHighPriorityOperator(curr)) {
+                    if (isHighPriorityOperator(curr)) {
                         expression = operation(expression, curr, null);
-                    } else if (!processed && isLowPriorityOperator(curr) && neg == null) {
+                    } else if (isLowPriorityOperator(curr)) {
                         expression = operation(expression, curr, null);
-                    } else if (neg != null) {
-                        number = "" + curr;
                     }
                 }
             } else if (isHighPriorityOperator(curr)) {
@@ -368,7 +355,7 @@ public class MathEvaluator {
                 return operation(expression, curr, parse(e.readFromHere()));
             }
         }
-        if (numberEnded(curr, e.previousChar(), number.isEmpty())) {
+        if (numberEnded(null, e.previousChar, number.isEmpty())) {
             Operand operand = new Operand(number);
             if (expression == null) {
                 expression = operand;
@@ -398,7 +385,7 @@ public class MathEvaluator {
         } else if (operator == '-') {
             op = new Subtraction(op1);
         }
-        if (op2 != null) {
+        if (op != null && op2 != null) {
             op.setRight(op2);
         }
         return op;

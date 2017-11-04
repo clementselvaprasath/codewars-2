@@ -345,12 +345,14 @@ public class MathEvaluator {
                     } else {
                         if (expression instanceof Operation) {
                             if (isHighPriorityOperator(curr) && ((Operation)expression).isLowPriority()) {
-                                ((Operation) expression).setRight(operation(operand, curr, parse(e.readFromHere())));
+                                ((Operation) expression).setRight(parse(new StringReader(operand.toString() + curr + e.readFromHere().toString())));
                                 return expression;
                             } else if (isLowPriorityOperator(curr)) {
                                 ((Operation) expression).setRight(operand);
                                 expression = operation(expression, curr, null);
                                 processed = true;
+                            } else {
+                                ((Operation) expression).setRight(operand);
                             }
                         }
                     }

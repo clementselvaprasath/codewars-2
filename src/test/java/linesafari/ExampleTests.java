@@ -164,4 +164,33 @@ public class ExampleTests {
         assertEquals(true, Dinglemouse.line(grid));
     }
 
+    @Test
+    public void exFailed4() {
+        final char grid[][] = makeGrid(new String[] {
+                "  X-----+",
+                "        |",
+                "  X-----+",
+                "        |",
+                "  ------+",
+                "    X    ",
+                "    |   |",
+                "+   |  -+-",
+                "    |   | ",
+                "    X    "
+        });
+        assertEquals(false, Dinglemouse.line(grid));
+    }
+
+    @Test
+    public void exFailed5() {
+        final char grid[][] = makeGrid(new String[] {
+                "    X    ",
+                "    |   |",
+                "+   |  -+-",
+                "    |   | ",
+                "    X    "
+        });
+        assertEquals(false, Dinglemouse.line(grid));
+    }
+
 }
